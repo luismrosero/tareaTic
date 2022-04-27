@@ -17,8 +17,6 @@ admin.initializeApp({
 
 });
 
-
-
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json())
 
@@ -28,7 +26,7 @@ app.get("/webhook", (req, res) => {
 
 
 app.listen(port, () => {
-    console.log('Servicio corriendo en el puerto ' + port);
+   // console.log('Servicio corriendo en el puerto ' + port);
 })
 
 app.post("/webhook", (req, res) => {
@@ -36,7 +34,7 @@ app.post("/webhook", (req, res) => {
 
     if (data !== undefined) {
         var playload = data.uplink_message.decoded_payload;
-        console.log(playload)
+      //  console.log(playload)
 
 
         let nombre = playload.nombre;
@@ -47,9 +45,9 @@ app.post("/webhook", (req, res) => {
         let lon = playload.lon;
 
 
-        console.log("desmon ==> " + desmontado);
-        console.log("lat ==> " + lat);
-        console.log("lon ==> " + lon);
+    //    console.log("desmon ==> " + desmontado);
+    //    console.log("lat ==> " + lat);
+    //    console.log("lon ==> " + lon);
         if (alarma === 1) {
             setAlarma(nombre, lat, lon, desmontado);
             enviarNotificacion(nombre)
@@ -111,9 +109,9 @@ const enviarNotificacion = (dat) => {
     }
 
     axios.post(fcm, message, {headers}).then((doc) => {
-        console.log("Enviado")
+      //  console.log("Enviado")
     }).catch((err) => {
-        console.log(err.message)
+      //  console.log(err.message)
     })
 }
 
@@ -134,7 +132,7 @@ const setAlarma = (nom, lat, lon, des) => {
     const cityRef = db.collection('alarmas').doc(ala.id);
 
     cityRef.set(ala, {merge: true}).then((dox) => {
-        console.log("Subio")
+      //  console.log("Subio")
     });
 
 }
