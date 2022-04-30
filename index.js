@@ -49,8 +49,14 @@ app.post("/webhook", (req, res) => {
     //    console.log("lat ==> " + lat);
     //    console.log("lon ==> " + lon);
         if (alarma === 1) {
-            setAlarma(nombre, lat, lon, desmontado);
-            enviarNotificacion(nombre)
+
+            try {
+                setAlarma(nombre, lat, lon, desmontado);
+                enviarNotificacion(nombre)
+            }catch (e){
+
+            }
+
         }
 
         res.sendStatus(200)
