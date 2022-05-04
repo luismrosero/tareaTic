@@ -26,40 +26,65 @@ app.get("/webhook", (req, res) => {
 
 
 app.listen(port, () => {
-   // console.log('Servicio corriendo en el puerto ' + port);
+    // console.log('Servicio corriendo en el puerto ' + port);
 })
 
 app.post("/webhook", (req, res) => {
     var data = req.body;
 
     if (data !== undefined) {
-        var playload = data.uplink_message.decoded_payload;
-      //  console.log(playload)
+        let playload = data.uplink_message.decoded_payload;
+        //   console.log(playload)
 
 
-        let nombre = playload.nombre;
-        let alarma = playload.bytes[2];
-        let desmontado = playload.bytes[3];
+        //    console.log("desmon ==> " + desmontado);
+        //    console.log("lat ==> " + lat);
+        //    console.log("lon ==> " + lon);
 
-        let lat = playload.lat;
-        let lon = playload.lon;
+        if (playload.tipo && playload.tipo === "panico") {
 
+            let nombre = playload.nombre;
+            let alarma = playload.bytes[2];
+            let desmontado = playload.bytes[3];
 
-    //    console.log("desmon ==> " + desmontado);
-    //    console.log("lat ==> " + lat);
-    //    console.log("lon ==> " + lon);
-        if (alarma === 1) {
+            let lat = playload.lat;
+            let lon = playload.lon;
+            if (alarma === 1) {
 
-            try {
-                setAlarma(nombre, lat, lon, desmontado);
-                enviarNotificacion(nombre)
-            }catch (e){
+                try {
+                    setAlarma(nombre, lat, lon, desmontado);
+                    enviarNotificacion(nombre)
+                } catch (e) {
+
+                }
 
             }
 
+            res.sendStatus(200)
+
+        } else if (playload.tipo && playload.tipo === "gps") {
+
+            let nombre = playload.nombre;
+
+            let lat = playload.lat;
+            let lon = playload.lon;
+
+            //console.log(lat)
+
+            if (lat === 0 && lon === -360) {
+
+            } else {
+                try {
+                    setGPS(nombre, lat, lon);
+                } catch (e) {
+
+                }
+                res.sendStatus(200)
+            }
+
+
         }
 
-        res.sendStatus(200)
 
         // para la alarma debo tambien decodificar el playload
 
@@ -115,9 +140,9 @@ const enviarNotificacion = (dat) => {
     }
 
     axios.post(fcm, message, {headers}).then((doc) => {
-      //  console.log("Enviado")
+        //  console.log("Enviado")
     }).catch((err) => {
-      //  console.log(err.message)
+        //  console.log(err.message)
     })
 }
 
@@ -138,7 +163,27 @@ const setAlarma = (nom, lat, lon, des) => {
     const cityRef = db.collection('alarmas').doc(ala.id);
 
     cityRef.set(ala, {merge: true}).then((dox) => {
-      //  console.log("Subio")
+        //  console.log("Subio")
+    });
+
+}
+
+const setGPS = (nom, lat, lon) => {
+
+    const db = admin.firestore();
+
+    let ala = {
+        id: new Date().getTime() + "GPS",
+        nombre: nom,
+        lat: parseFloat(lat),
+        lon: parseFloat(lon),
+        fecha: new Date(),
+    }
+
+    const cityRef = db.collection('gpss').doc(ala.id);
+
+    cityRef.set(ala, {merge: true}).then((dox) => {
+        //  console.log("Subio")
     });
 
 }
