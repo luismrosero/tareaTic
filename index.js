@@ -83,6 +83,11 @@ app.post("/webhook", (req, res) => {
             }
 
 
+        } else if (playload.tipo && playload.tipo === "apertura") {
+
+
+            updateApertura(playload.abierto)
+
         }
 
 
@@ -186,6 +191,16 @@ const setGPS = (nom, lat, lon) => {
         //  console.log("Subio")
     });
 
+}
+
+const updateApertura = (isAbierto) => {
+
+    const db = admin.firestore();
+    const cityRef = db.collection('sensores').doc("puerta");
+
+    cityRef.update({abierta: isAbierto}).then((dox) => {
+
+    })
 }
 
 
