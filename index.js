@@ -86,7 +86,7 @@ app.post("/webhook", (req, res) => {
         } else if (playload.tipo && playload.tipo === "apertura") {
 
 
-            console.log(playload.abierto)
+           // console.log(playload.abierto)
 
             updateApertura(playload.abierto)
 
@@ -206,7 +206,7 @@ const updateApertura = (isAbierto) => {
 
 
     }).catch((err) =>{
-        console.log(err.message)
+       // console.log(err.message)
     })
 }
 
