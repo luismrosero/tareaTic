@@ -204,6 +204,7 @@ const updateApertura = (isAbierto) => {
 
       //  console.log("Se hizo")
 
+
     }).catch((err) =>{
       //  console.log(err.message)
     })
