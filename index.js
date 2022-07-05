@@ -34,90 +34,68 @@ app.post("/webhook", (req, res) => {
 
     if (data !== undefined) {
         let playload = data.uplink_message.decoded_payload;
-        //   console.log(playload)
 
 
-        //    console.log("desmon ==> " + desmontado);
-        //    console.log("lat ==> " + lat);
-        //    console.log("lon ==> " + lon);
+        if(playload !== null && playload !== undefined && playload.tipo){
 
-        if (playload.tipo && playload.tipo === "panico") {
-
-            let nombre = playload.nombre;
-            let alarma = playload.bytes[2];
-            let desmontado = playload.bytes[3];
-
-            let lat = playload.lat;
-            let lon = playload.lon;
-            if (alarma === 1) {
-
-                try {
-                    setAlarma(nombre, lat, lon, desmontado);
-                    enviarNotificacion(nombre)
-                } catch (e) {
-
-                }
-
+            let sensor = {
+                id: playload.id,
+                nombre: playload.nombre,
+                activo: playload.activo,
+                fechDato: new Date(),
+                lati: playload.lati,
+                longi: playload.longi,
+                montado: playload.montado,
+                tipo: playload.tipo,
+                bateria: playload.bateria,
             }
 
-            res.sendStatus(200)
+            guardarDatos(sensor)
 
-        } else if (playload.tipo && playload.tipo === "gps") {
-
-            let nombre = playload.nombre;
-
-            let lat = playload.lat;
-            let lon = playload.lon;
-
-            //console.log(lat)
-
-            if (lat === 0 && lon === -360) {
-
-            } else {
-                try {
-                    setGPS(nombre, lat, lon);
-                } catch (e) {
-
-                }
-                res.sendStatus(200)
+            if (sensor.tipo !== "gps" && sensor.activo){
+                enviarNotificacion(sensor)
             }
 
-
-        } else if (playload.tipo && playload.tipo === "apertura") {
-
-
-           // console.log(playload.abierto)
-
-            updateApertura(playload.abierto)
 
         }
 
 
-        // para la alarma debo tambien decodificar el playload
-
     }
+
+    res.sendStatus(200)
 
 })
 
+const guardarDatos = (sensor) =>{
 
-const enviarNotificacion = (dat) => {
+    const db = admin.firestore();
+
+    const cityRef = db.collection('sensores').doc(sensor.id);
+
+    cityRef.set(sensor, {merge: true}).then((dox) => {
+         // console.log("Subio")
+    });
+
+}
+
+
+const enviarNotificacion = (sensor) => {
     const fcm = "https://fcm.googleapis.com/fcm/send"
 
-    // corregir si imagen
 
     let message = {
 
         "to": "/topics/all",
         "priority": "high",
         "notification": {
-            "body": "Activo alarma",
-            "title": dat,
+            "body": "Ha sido Activada en la fecha: " +  sensor.fechDato.toLocaleString(),
+            "title": sensor.nombre,
             "sound": "siren",
 
 
         },
         "data": {
-            "nombre": dat,
+            "nombre": sensor,
         },
 
         android: {
@@ -154,61 +132,10 @@ const enviarNotificacion = (dat) => {
 }
 
 
-const setAlarma = (nom, lat, lon, des) => {
-
-    const db = admin.firestore();
-
-    let ala = {
-        id: new Date().getTime() + "ALA",
-        nombre: nom,
-        lat: parseFloat(lat),
-        lon: parseFloat(lon),
-        fecha: new Date(),
-        desmontado: des
-    }
-
-    const cityRef = db.collection('alarmas').doc(ala.id);
-
-    cityRef.set(ala, {merge: true}).then((dox) => {
-        //  console.log("Subio")
-    });
-
-}
-
-const setGPS = (nom, lat, lon) => {
-
-    const db = admin.firestore();
-
-    let ala = {
-        id: new Date().getTime() + "GPS",
-        nombre: nom,
-        lat: parseFloat(lat),
-        lon: parseFloat(lon),
-        fecha: new Date(),
-    }
-
-    const cityRef = db.collection('gpss').doc(ala.id);
-
-    cityRef.set(ala, {merge: true}).then((dox) => {
-        //  console.log("Subio")
-    });
-
-}
-
-const updateApertura = (isAbierto) => {
-
-    const db = admin.firestore();
-    const cityRef = db.collection('sensores').doc("puerta");
-
-    cityRef.update({abierta: isAbierto}).then((dox) => {
-
-      //  console.log("Se hizo")
 
 
-    }).catch((err) =>{
-       // console.log(err.message)
-    })
-}
+
+
 
 
 
