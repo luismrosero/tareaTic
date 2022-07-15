@@ -13,6 +13,7 @@ const port = process.env.PORT || 3000;
 const serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
+
     credential: admin.credential.cert(serviceAccount),
 
 });
@@ -40,11 +41,12 @@ app.post("/webhook", (req, res) => {
 
             let sensor = {
                 id: playload.id,
+                idapp : playload.idapp,
                 nombre: playload.nombre,
-                activo: playload.activo,
+               // activo: playload.activo,
                 fechDato: new Date(),
-                lati: playload.lati,
-                longi: playload.longi,
+                lat: playload.lat,
+                lng: playload.lng,
                 montado: playload.montado,
                 tipo: playload.tipo,
                 bateria: playload.bateria,
@@ -52,8 +54,13 @@ app.post("/webhook", (req, res) => {
 
             guardarDatos(sensor)
 
-            if (sensor.tipo !== "gps" && sensor.activo){
+            /*if (sensor.tipo !== "gps" && sensor.activo){
                 enviarNotificacion(sensor)
+            }*/
+
+
+            if (sensor.idapp === "masganaderia"){
+                guardarAnimal(sensor)
             }
 
 
@@ -65,6 +72,23 @@ app.post("/webhook", (req, res) => {
     res.sendStatus(200)
 
 })
+
+
+
+const guardarAnimal = (sensor) =>{
+
+    const db = admin.firestore();
+
+    const cityRef = db.collection('animales').doc(sensor.id);
+
+    cityRef.update( {lat: sensor.lat, lng: sensor.lng, fecha: sensor.fechDato}).then((dox) => {
+        // console.log("Subio")
+    });
+
+
+
+}
+
 
 const guardarDatos = (sensor) =>{
 
@@ -118,9 +142,10 @@ const enviarNotificacion = (sensor) => {
 
     }
 
+    //original:  AAAA6TfiKFc:APA91bFZP7SIroAwrhRBejuaplTlY52FhiHp5ULCuiWiNFYwe81UcBxCpVhB6SAwAv1NCnAMLirU9vU-VCPvikNmT-WOAe_2VUlwtfTDKbnHRXZNITBhBcbAsy2CIsTIPQjCbPyvtF6P
 
     const headers = {
-        "Authorization": "key=AAAA6TfiKFc:APA91bFZP7SIroAwrhRBejuaplTlY52FhiHp5ULCuiWiNFYwe81UcBxCpVhB6SAwAv1NCnAMLirU9vU-VCPvikNmT-WOAe_2VUlwtfTDKbnHRXZNITBhBcbAsy2CIsTIPQjCbPyvtF6P",
+        "Authorization": "key=AAAAgaOa4NY:APA91bHn-aInQWhfD7_cA-oE5l6ej-cXL4YUG0uIZPHIp9K2xG_aVaORpeb_tHnGYRgR6y-PZwtgp_tFsd2xFp4UwZMfUM92LNyauEW7t-ZZznTXaspAUFNlPUx2C25HjHI8UFSdjOVJ",
         "Content-Type": "application/json",
     }
 
