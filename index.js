@@ -43,7 +43,7 @@ app.post("/webhook", (req, res) => {
                 id: playload.id,
                 idapp : playload.idapp,
                 nombre: playload.nombre,
-               // activo: playload.activo,
+                activo: playload.activo,
                 fechDato: new Date(),
                 lat: playload.lat,
                 lng: playload.lng,
@@ -54,14 +54,14 @@ app.post("/webhook", (req, res) => {
 
             guardarDatos(sensor)
 
-            /*if (sensor.tipo !== "gps" && sensor.activo){
+            if (sensor.tipo !== "gps" && sensor.activo){
                 enviarNotificacion(sensor)
-            }*/
-
-
-            if (sensor.idapp === "masganaderia"){
-                guardarAnimal(sensor)
             }
+
+
+         /*   if (sensor.idapp === "masganaderia"){
+                guardarAnimal(sensor)
+            }*/
 
 
         }
@@ -145,7 +145,7 @@ const enviarNotificacion = (sensor) => {
     //original:  AAAA6TfiKFc:APA91bFZP7SIroAwrhRBejuaplTlY52FhiHp5ULCuiWiNFYwe81UcBxCpVhB6SAwAv1NCnAMLirU9vU-VCPvikNmT-WOAe_2VUlwtfTDKbnHRXZNITBhBcbAsy2CIsTIPQjCbPyvtF6P
 
     const headers = {
-        "Authorization": "key=AAAAgaOa4NY:APA91bHn-aInQWhfD7_cA-oE5l6ej-cXL4YUG0uIZPHIp9K2xG_aVaORpeb_tHnGYRgR6y-PZwtgp_tFsd2xFp4UwZMfUM92LNyauEW7t-ZZznTXaspAUFNlPUx2C25HjHI8UFSdjOVJ",
+        "Authorization": "key=AAAA6TfiKFc:APA91bFZP7SIroAwrhRBejuaplTlY52FhiHp5ULCuiWiNFYwe81UcBxCpVhB6SAwAv1NCnAMLirU9vU-VCPvikNmT-WOAe_2VUlwtfTDKbnHRXZNITBhBcbAsy2CIsTIPQjCbPyvtF6P",
         "Content-Type": "application/json",
     }
 
