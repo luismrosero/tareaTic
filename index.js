@@ -106,7 +106,6 @@ const guardarDatos = (sensor) =>{
 const enviarNotificacion = (sensor) => {
     const fcm = "https://fcm.googleapis.com/fcm/send"
 
-
     let message = {
 
         "to": "/topics/all",
@@ -142,7 +141,6 @@ const enviarNotificacion = (sensor) => {
 
     }
 
-    //original:  AAAA6TfiKFc:APA91bFZP7SIroAwrhRBejuaplTlY52FhiHp5ULCuiWiNFYwe81UcBxCpVhB6SAwAv1NCnAMLirU9vU-VCPvikNmT-WOAe_2VUlwtfTDKbnHRXZNITBhBcbAsy2CIsTIPQjCbPyvtF6P
 
     const headers = {
         "Authorization": "key=AAAA6TfiKFc:APA91bFZP7SIroAwrhRBejuaplTlY52FhiHp5ULCuiWiNFYwe81UcBxCpVhB6SAwAv1NCnAMLirU9vU-VCPvikNmT-WOAe_2VUlwtfTDKbnHRXZNITBhBcbAsy2CIsTIPQjCbPyvtF6P",
