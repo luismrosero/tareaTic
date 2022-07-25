@@ -37,7 +37,7 @@ app.post("/webhook", (req, res) => {
         let playload = data.uplink_message.decoded_payload;
 
 
-        if (playload !== null && playload !== undefined && data.uplink_message !== undefined && data.uplink_message.f_port === 44 && playload.tipo) {
+        if (playload !== null && playload !== undefined && data.uplink_message.f_port === 44 && playload.tipo) {
 
             let sensor = {
                 id: playload.id,
