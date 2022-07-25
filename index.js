@@ -37,11 +37,11 @@ app.post("/webhook", (req, res) => {
         let playload = data.uplink_message.decoded_payload;
 
 
-        if(playload !== null && playload !== undefined && playload.tipo){
+        if (playload !== null && playload !== undefined && data.uplink_message !== undefined && data.uplink_message.f_port === 44 && playload.tipo) {
 
             let sensor = {
                 id: playload.id,
-                idapp : playload.idapp,
+                idapp: playload.idapp,
                 nombre: playload.nombre,
                 activo: playload.activo,
                 fechDato: new Date(),
@@ -52,16 +52,19 @@ app.post("/webhook", (req, res) => {
                 bateria: playload.bateria,
             }
 
-            guardarDatos(sensor)
+            if (sensor.tipo === "sos" && sensor.activo) {
+                guardarDatos(sensor)
+            }
 
-            if (sensor.tipo !== "gps" && sensor.activo){
+
+            if (sensor.tipo !== "gps" && sensor.activo) {
                 enviarNotificacion(sensor)
             }
 
 
-         /*   if (sensor.idapp === "masganaderia"){
-                guardarAnimal(sensor)
-            }*/
+            /*   if (sensor.idapp === "masganaderia"){
+                   guardarAnimal(sensor)
+               }*/
 
 
         }
@@ -74,33 +77,35 @@ app.post("/webhook", (req, res) => {
 })
 
 
-
-const guardarAnimal = (sensor) =>{
+const guardarAnimal = (sensor) => {
 
     const db = admin.firestore();
 
     const cityRef = db.collection('animales').doc(sensor.id);
 
-    cityRef.update( {lat: sensor.lat, lng: sensor.lng, fecha: sensor.fechDato}).then((dox) => {
+    cityRef.update({lat: sensor.lat, lng: sensor.lng, fecha: sensor.fechDato}).then((dox) => {
         // console.log("Subio")
     });
-
 
 
 }
 
 
-const guardarDatos = (sensor) =>{
+const guardarDatos = (sensor) => {
 
     const db = admin.firestore();
 
     const cityRef = db.collection('sensores').doc(sensor.id);
 
     cityRef.set(sensor, {merge: true}).then((dox) => {
-         // console.log("Subio")
+        //  console.log("Subio")
+    }).catch((err) => {
+        //  console.log(err.message)
     });
-
 }
+
+//0101010023
+//http://44.203.152.44:3000
 
 
 const enviarNotificacion = (sensor) => {
@@ -111,7 +116,7 @@ const enviarNotificacion = (sensor) => {
         "to": "/topics/all",
         "priority": "high",
         "notification": {
-            "body": "Ha sido Activada en la fecha: " +  sensor.fechDato.toLocaleString(),
+            "body": "Ha sido Activada en la fecha: " + sensor.fechDato.toLocaleString(),
             "title": sensor.nombre,
             "sound": "siren",
 
