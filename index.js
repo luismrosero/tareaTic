@@ -116,7 +116,7 @@ const enviarNotificacion = (sensor) => {
         "to": "/topics/all",
         "priority": "high",
         "notification": {
-            "body": "Ha sido Activada en la fecha: " + sensor.fechDato.toLocaleString(),
+            "body": "Ha sido Activada en la fecha: " + sensor.fechDato.toLocaleString('es-CO', {timeZone: 'America/Bogota'}),
             "title": sensor.nombre,
             "sound": "siren",
 
