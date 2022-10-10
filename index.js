@@ -28,7 +28,7 @@ app.get("/webhook", (req, res) => {
 
 // aviso de que esta activo
 app.listen(port, () => {
-    console.log('Servicio corriendo en el puerto ' + port);
+   // console.log('Servicio corriendo en el puerto ' + port);
 })
 
 // metodo post
@@ -44,7 +44,7 @@ app.post("/webhook", (req, res) => {
                     if (fin.res) {
                         sensor.enviarAlarma(dox.data).then((doxo) => {
                             sensor.ingresarHistorial(dox.data).then((doxo) => {
-                                console.log("datos actualizados")
+                              //  console.log("datos actualizados")
                             });
                         })
 
@@ -54,9 +54,9 @@ app.post("/webhook", (req, res) => {
             } else {
                 sensor.ingresarSensor().then((dox) => {
                     if (dox.res) {
-                        console.log("ingresado")
+                       // console.log("ingresado")
                     } else {
-                        console.log(dox.data)
+                     //   console.log(dox.data)
                     }
                 });
             }
@@ -66,7 +66,7 @@ app.post("/webhook", (req, res) => {
 
     } else {
         res.sendStatus(200)
-        console.log("datos invalidos")
+       // console.log("datos invalidos")
     }
 
 
@@ -214,10 +214,10 @@ class SensorGPS extends Sensor {
 
         return new Promise(resolve => {
             if (config.notificacion) {
-                console.log("Enviando notificacion")
+              //  console.log("Enviando notificacion")
                 return resolve({res: true})
             } else {
-                console.log("NO Envio notificacion")
+               // console.log("NO Envio notificacion")
                 return resolve({res: false})
             }
         })
@@ -242,7 +242,7 @@ class SensorGPS extends Sensor {
                 db.collection("sensores").doc(this.id).update(datosNuevos).then((dox) => {
                     return resolve({res: true, data: null})
                 }).catch((err) => {
-                    console.log(err.message)
+                   // console.log(err.message)
                     return resolve({res: false, data: err.message})
 
                 })
@@ -273,7 +273,7 @@ class SensorGPS extends Sensor {
 
             if (config.historial) {
                 db.collection("historial/gps/" + this.id).doc(his.id).set(his).then((dox) => {
-                    console.log("Historial Adicionado")
+                   // console.log("Historial Adicionado")
                     return resolve({res: true, data: null})
                 }).catch((err) => {
                     return resolve({res: false, data: err.message})
