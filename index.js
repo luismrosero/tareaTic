@@ -4,105 +4,74 @@ const express = require('express');
 const bodyParser = require('body-parser')
 const axios = require('axios');
 const admin = require("firebase-admin");
-const {initializeApp} = require('firebase-admin/app');
-const {getDatabase} = require('firebase-admin/database');
 
 
 const app = express();
 const port = process.env.PORT || 3000;
 const serviceAccount = require("./serviceAccountKey.json");
-
-admin.initializeApp({
-
-    credential: admin.credential.cert(serviceAccount),
-
-});
-
+const {data} = require("ttn");
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json())
 
+
+// inicializamos Base de Datos
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+});
+
+var db = admin.firestore();
+
+// metodo get
 app.get("/webhook", (req, res) => {
     res.send("Bienvenido a mi webhook");
 })
 
-
+// aviso de que esta activo
 app.listen(port, () => {
-    // console.log('Servicio corriendo en el puerto ' + port);
+    console.log('Servicio corriendo en el puerto ' + port);
 })
 
+// metodo post
 app.post("/webhook", (req, res) => {
-    var data = req.body;
 
-    if (data !== undefined) {
-        let playload = data.uplink_message.decoded_payload;
+    let data = validarData(req)
+    if (data) {
+
+        let sensor = obtemerSensor(data)
+        sensor.consultarDatos().then((dox) => {
+            if (dox.res) {
+                sensor.actualizarDatos().then((fin) => {
+                    if (fin.res) {
+                        sensor.enviarAlarma(dox.data).then((doxo) => {
+                            sensor.ingresarHistorial(dox.data).then((doxo) => {
+                                console.log("datos actualizados")
+                            });
+                        })
 
 
-        if (playload !== null && playload !== undefined && data.uplink_message.f_port === 44 && playload.tipo) {
-
-            let sensor = {
-                id: playload.id,
-                idapp: playload.idapp,
-                nombre: playload.nombre,
-                activo: playload.activo,
-                fechDato: new Date(),
-                lat: playload.lat,
-                lng: playload.lng,
-                montado: playload.montado,
-                tipo: playload.tipo,
-                bateria: playload.bateria,
+                    }
+                });
+            } else {
+                sensor.ingresarSensor().then((dox) => {
+                    if (dox.res) {
+                        console.log("ingresado")
+                    } else {
+                        console.log(dox.data)
+                    }
+                });
             }
+        })
 
-            if (sensor.tipo === "sos" && sensor.activo) {
-                guardarDatos(sensor)
-            }
+        res.sendStatus(200)
 
-
-            if (sensor.tipo !== "gps" && sensor.activo) {
-                enviarNotificacion(sensor)
-            }
-
-
-            /*   if (sensor.idapp === "masganaderia"){
-                   guardarAnimal(sensor)
-               }*/
-
-
-        }
-
-
+    } else {
+        res.sendStatus(200)
+        console.log("datos invalidos")
     }
 
-    res.sendStatus(200)
 
 })
 
-
-const guardarAnimal = (sensor) => {
-
-    const db = admin.firestore();
-
-    const cityRef = db.collection('animales').doc(sensor.id);
-
-    cityRef.update({lat: sensor.lat, lng: sensor.lng, fecha: sensor.fechDato}).then((dox) => {
-        // console.log("Subio")
-    });
-
-
-}
-
-
-const guardarDatos = (sensor) => {
-
-    const db = admin.firestore();
-
-    const cityRef = db.collection('sensores').doc(sensor.id);
-
-    cityRef.set(sensor, {merge: true}).then((dox) => {
-        //  console.log("Subio")
-    }).catch((err) => {
-        //  console.log(err.message)
-    });
-}
 
 //0101010023
 //http://44.203.152.44:3000
@@ -160,12 +129,162 @@ const enviarNotificacion = (sensor) => {
 }
 
 
+const validarData = (req) => {
+
+    let dat = req.body;
+    if (dat
+        && dat.uplink_message
+        && dat.uplink_message.decoded_payload
+        && dat.uplink_message.f_port
+        && dat.uplink_message.f_port === 41) {
+        return dat.uplink_message.decoded_payload
+    } else {
+        return null
+    }
+}
+
+
+const obtemerSensor = (data) => {
+
+    switch (data.tipo) {
+        case "GPS" : {
+            return new SensorGPS(data)
+        }
+    }
+
+}
+
+class Sensor {
+
+    constructor(data) {
+        this.id = data.id;
+        this.tipo = data.tipo;
+        this.data = data
+    }
+
+    consultarDatos() {
+        return new Promise(resolve => {
+            db.collection("sensores").doc(this.id).get().then((dox) => {
+                if (dox.exists) {
+                    return resolve({res: true, data: dox.data()});
+                } else {
+                    return resolve({res: false, data: null});
+                }
+            })
+        })
+
+
+    }
 
 
 
+}
+
+class SensorGPS extends Sensor {
+
+    constructor(data) {
+        super(data);
+        this.id = data.id;
+        this.lat = data.lat;
+        this.lng = data.lng;
+        this.montado = data.montado;
+        this.activo = data.activo;
+        this.data = data;
+    }
+
+
+    ingresarSensor() {
+
+        return new Promise(resolve => {
+
+            if (this.lat !== 0 && this.lng !== -360){
+                db.collection("sensores").doc(this.id).set(this.data).then((dox) => {
+                    return resolve({res: true, data: this.id});
+                }).catch((err) => {
+                    return resolve({res: false, data: err.message})
+                })
+            }else{
+                return resolve({res: false, data: "no ingresado, sin datos de ubicacion"})
+            }
+
+        })
+    }
+
+    enviarAlarma(config) {
+
+        return new Promise(resolve => {
+            if (config.notificacion) {
+                console.log("Enviando notificacion")
+                return resolve({res: true})
+            } else {
+                console.log("NO Envio notificacion")
+                return resolve({res: false})
+            }
+        })
+
+
+    }
+
+    actualizarDatos() {
+
+        let date = new Date();
+
+
+        let datosNuevos = {
+            lat: this.lat,
+            lng: this.lng,
+            fecha: date,
+        }
+
+        return new Promise(resolve => {
+
+            if (datosNuevos.lat !== 0 && datosNuevos.lng !== -360){
+                db.collection("sensores").doc(this.id).update(datosNuevos).then((dox) => {
+                    return resolve({res: true, data: null})
+                }).catch((err) => {
+                    console.log(err.message)
+                    return resolve({res: false, data: err.message})
+
+                })
+            }else{
+                return resolve({res: false, data: "Encontrando Ubicacion"})
+            }
 
 
 
+        })
 
 
+    }
 
+    ingresarHistorial(config) {
+
+        let his = {
+            id: new Date().getTime() + "HIS",
+            idSensor: this.id,
+            fecha: new Date(),
+            lat: this.lat,
+            lng: this.lng,
+            activo: this.activo,
+            montado: this.montado,
+        }
+
+        return new Promise(resolve => {
+
+            if (config.historial) {
+                db.collection("historial/gps/" + this.id).doc(his.id).set(his).then((dox) => {
+                    console.log("Historial Adicionado")
+                    return resolve({res: true, data: null})
+                }).catch((err) => {
+                    return resolve({res: false, data: err.message})
+                })
+            } else {
+                return resolve({res: false, data: null})
+            }
+
+        })
+
+    }
+
+
+}
