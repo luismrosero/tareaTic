@@ -117,7 +117,7 @@ const enviarNotificacion = (sensor) => {
 
 
     const headers = {
-        "Authorization": "key=AAAA6TfiKFc:APA91bFZP7SIroAwrhRBejuaplTlY52FhiHp5ULCuiWiNFYwe81UcBxCpVhB6SAwAv1NCnAMLirU9vU-VCPvikNmT-WOAe_2VUlwtfTDKbnHRXZNITBhBcbAsy2CIsTIPQjCbPyvtF6P",
+        "Authorization": "key=AAAAMkS_sAM:APA91bFyl6Kdtmq-h4nM3fpwPJE_ssJgz8Jl05hNFUXyfgWbbIsDq47LviH6CxSs6ComMSZBDRUkSaSqvx-kiR5Hulzxx2diVbF4D9sX9m1ZrqQyoR_pR45Eo9-XEFTlGkY6Zm7af9HS",
         "Content-Type": "application/json",
     }
 
